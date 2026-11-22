@@ -9,8 +9,9 @@ const {
 const { requireUser } = require("../middleware/auth");
 
 router.get("/", requireUser, getMyNotifications);
+// IMPORTANT: /mark-all/read MUST come before /:id/read
 router.put("/mark-all/read", requireUser, markAllRead);
-router.delete("/clear", requireUser, clearAll);
 router.put("/:id/read", requireUser, markRead);
+router.delete("/clear", requireUser, clearAll);
 
 module.exports = router;

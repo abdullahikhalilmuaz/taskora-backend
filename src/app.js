@@ -4,16 +4,7 @@ const { errorHandler, notFound } = require("./middleware/errorHandler");
 
 const app = express();
 
-const corsOptions = {
-  origin: (origin, cb) => cb(null, true), // allow all origins, no crash on missing origin
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "x-user-email", "x-admin-email"],
-};
-
-app.use(cors(corsOptions));
-app.options("*", cors(corsOptions));
-
+app.use(cors({ origin: "*", credentials: true }));
 app.use(express.json({ limit: "5mb" }));
 app.use(express.urlencoded({ extended: true }));
 
@@ -28,6 +19,7 @@ app.get("/health", (req, res) => {
 app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/users", require("./routes/userRoutes"));
 app.use("/api/tasks", require("./routes/taskRoutes"));
+app.use("/api/personal-tasks", require("./routes/personalTaskRoutes")); // ← NEW
 app.use("/api/reports", require("./routes/reportRoutes"));
 app.use("/api/messages", require("./routes/messageRoutes"));
 app.use("/api/notifications", require("./routes/notificationRoutes"));

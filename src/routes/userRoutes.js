@@ -1,4 +1,4 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
 const {
   getAllEmployees,
@@ -7,14 +7,14 @@ const {
   updateUser,
   deleteUser,
   resetPassword,
-} = require('../controllers/userController');
-const { requireUser, requireAdmin } = require('../middleware/auth');
+} = require("../controllers/userController");
+const { requireUser, requireAdmin } = require("../middleware/auth");
 
-router.get('/me', requireUser, getMe);
-router.get('/employees', requireUser, requireAdmin, getAllEmployees);
-router.get('/', requireUser, requireAdmin, getAllUsers);
-router.put('/:id', requireUser, requireAdmin, updateUser);
-router.put('/:id/reset-password', requireUser, requireAdmin, resetPassword);
-router.delete('/:id', requireUser, requireAdmin, deleteUser);
+router.get("/me", requireUser, getMe);
+router.get("/employees", requireUser, requireAdmin, getAllEmployees);
+router.get("/", requireUser, requireAdmin, getAllUsers);
+router.put("/:id", requireUser, updateUser); // self OR admin — checked in controller
+router.put("/:id/reset-password", requireUser, requireAdmin, resetPassword);
+router.delete("/:id", requireUser, requireAdmin, deleteUser);
 
 module.exports = router;

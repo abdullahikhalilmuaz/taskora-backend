@@ -1,6 +1,7 @@
 const Message = require('../models/Message');
 const User = require('../models/User');
 const Task = require('../models/Task');
+const { createNotification } = require('../services/notificationService');
 
 module.exports = (io) => {
   io.on('connection', (socket) => {
@@ -8,7 +9,7 @@ module.exports = (io) => {
 
     socket.on('user:join', async ({ email }) => {
       if (!email) return;
-      const user = await User.findOne({ email });
+      const user = await User.findOne({ email: email.toLowerCase().trim() });
       if (!user) return;
       socket.join('user:' + user._id.toString());
       socket.userId = user._id.toString();
@@ -25,7 +26,7 @@ module.exports = (io) => {
     socket.on('chat:send', async ({ taskId, email, text }) => {
       try {
         if (!taskId || !email || !text) return;
-        const user = await User.findOne({ email });
+        const user = await User.findOne({ email: email.toLowerCase().trim() });
         if (!user) return;
         const task = await Task.findById(taskId);
         if (!task) return;
@@ -40,20 +41,22 @@ module.exports = (io) => {
 
         io.to('task:' + taskId).emit('chat:new', msg);
 
-        const recipients = [task.createdBy.toString(), task.assignedTo.toString()];
-        recipients.forEach((uid) => {
-          if (uid !== user._id.toString()) {
-            io.to('user:' + uid).emit('notification:new', {
-              _id: msg._id,
-              type: 'message',
-              title: 'New message',
-              message: user.name + ': ' + text.slice(0, 60),
-              taskId,
-              read: false,
-              createdAt: msg.createdAt,
-            });
-          }
-        });
+        const recipients = [...new Set([
+          task.createdBy.toString(),
+          task.assignedTo.toString(),
+        ])].filter((uid) => uid !== user._id.toString());
+
+        for (const uid of recipients) {
+          await createNotification({
+            io,
+            userId: uid,
+            type: 'message',
+            title: 'New message',
+            message: user.name + ': ' + text.slice(0, 60),
+            taskId,
+            link: '/task/' + taskId,
+          });
+        }
       } catch (err) {
         console.error('chat:send error', err.message);
       }
